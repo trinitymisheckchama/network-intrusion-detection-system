@@ -187,7 +187,6 @@ def create_app(api_base_url=None):
                 success=success,
                 form_data=form_data or {},
                 csrf_token=session["csrf_token"],
-                load_error=load_error,
             ),
             status,
         )

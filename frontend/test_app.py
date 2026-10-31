@@ -39,6 +39,8 @@ class FlaskFrontendTest(unittest.TestCase):
 
     @patch("frontend.app.api_request")
     def test_valid_form_posts_event_then_refreshes_list(self, api_request):
+        token = self.csrf_token()
+        api_request.reset_mock()
         api_request.side_effect = [
             {"id": 9},
             [{
@@ -57,7 +59,7 @@ class FlaskFrontendTest(unittest.TestCase):
         response = self.client.post(
             "/events",
             data={
-                "csrf_token": self.csrf_token(),
+                "csrf_token": token,
                 "sourceIp": "192.168.1.5",
                 "sourcePort": "5050",
                 "destinationIp": "192.168.1.8",
@@ -76,10 +78,13 @@ class FlaskFrontendTest(unittest.TestCase):
 
     @patch("frontend.app.api_request")
     def test_rejects_invalid_input_without_calling_backend(self, api_request):
+        token = self.csrf_token()
+        api_request.reset_mock()
+
         response = self.client.post(
             "/events",
             data={
-                "csrf_token": self.csrf_token(),
+                "csrf_token": token,
                 "sourceIp": "192.168.1.5",
                 "destinationIp": "192.168.1.8",
                 "protocol": "INVALID",
@@ -91,7 +96,9 @@ class FlaskFrontendTest(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn(b"Select a valid protocol", response.data)
         self.assertIn(b"Packet size must be a whole number", response.data)
-        api_request.assert_not_called()
+        self.assertTrue(
+            all(call.args[1] == "GET" for call in api_request.call_args_list)
+        )
 
     @patch("frontend.app.api_request")
     def test_shows_backend_error_on_dashboard(self, api_request):

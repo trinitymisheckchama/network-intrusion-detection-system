@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INIDMS | Reports &amp; graphs</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="{{ url_for('index') }}">
+        <span class="brand-mark" aria-hidden="true">I</span>
+        <span>INIDMS<span class="brand-caption">NETWORK MONITOR</span></span>
+      </a>
+      <div class="topbar-tools">
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <a class="nav-link" href="{{ url_for('index') }}">Events</a>
+          <a class="nav-link active" href="{{ url_for('reports') }}" aria-current="page">
+            <span class="chart-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+            Reports &amp; graphs
+          </a>
+        </nav>
+        <span class="connection">
+          <span class="status-dot{% if load_error %} offline{% endif %}"></span>
+          {% if load_error %}API unavailable{% else %}Java API{% endif %}
+        </span>
+      </div>
+    </header>
+
+    <section class="intro">
+      <p class="eyebrow">TRAFFIC / ANALYSIS</p>
+      <h1>Reports &amp; graphs</h1>
+      <p class="subtitle">A breakdown of the latest events recorded by the Java API.</p>
+    </section>
+
+    {% if load_error %}
+      <div class="empty-state report-error" role="alert">
+        <span class="empty-icon" aria-hidden="true">!</span>
+        <h3>Report data unavailable</h3>
+        <p>{{ load_error }}</p>
+      </div>
+    {% else %}
+      <section class="report-metrics" aria-label="Event summary">
+        <article class="metric">
+          <span class="metric-label">Events analyzed</span>
+          <strong>{{ report.event_count }}</strong>
+          <span class="metric-note">latest API results</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Unique sources</span>
+          <strong>{{ report.source_count }}</strong>
+          <span class="metric-note">source addresses</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Average packet size</span>
+          <strong>{{ report.average_packet_size }}<small> B</small></strong>
+          <span class="metric-note">per recorded event</span>
+        </article>
+        <article class="metric">
+          <span class="metric-label">Capture dates</span>
+          <strong>{{ report.date_count }}</strong>
+          <span class="metric-note">dates represented</span>
+        </article>
+      </section>
+
+      <section class="report-grid" aria-label="Event graphs">
+        <article class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">PROTOCOL MIX</p>
+              <h2>Events by protocol</h2>
+            </div>
+            <span class="chart-total">{{ report.event_count }} total</span>
+          </div>
+          <div class="chart-rows" role="list" aria-label="Event counts by protocol">
+            {% for row in report.protocol_rows %}
+              <div class="chart-row" role="listitem">
+                <div class="chart-label"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>
+                <div class="bar-track" aria-hidden="true"><span class="bar-protocol" style="width: {{ row.width }}%"></span></div>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+
+        <article class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">EVENT CLASSIFICATION</p>
+              <h2>Frequent event types</h2>
+            </div>
+            <span class="chart-total">Top 6</span>
+          </div>
+          {% if report.event_type_rows %}
+            <div class="chart-rows" role="list" aria-label="Most frequent event types">
+              {% for row in report.event_type_rows %}
+                <div class="chart-row" role="listitem">
+                  <div class="chart-label"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>
+                  <div class="bar-track" aria-hidden="true"><span class="bar-type" style="width: {{ row.width }}%"></span></div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="chart-empty">No event types recorded.</p>
+          {% endif %}
+        </article>
+
+        <article class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">ORIGIN ADDRESSES</p>
+              <h2>Most active sources</h2>
+            </div>
+            <span class="chart-total">Top 6</span>
+          </div>
+          {% if report.source_rows %}
+            <div class="chart-rows" role="list" aria-label="Most active source addresses">
+              {% for row in report.source_rows %}
+                <div class="chart-row" role="listitem">
+                  <div class="chart-label"><span class="chart-mono">{{ row.label }}</span><strong>{{ row.count }}</strong></div>
+                  <div class="bar-track" aria-hidden="true"><span class="bar-source" style="width: {{ row.width }}%"></span></div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="chart-empty">No source addresses recorded.</p>
+          {% endif %}
+        </article>
+
+        <article class="panel chart-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">CAPTURE HISTORY</p>
+              <h2>Events by date</h2>
+            </div>
+            <span class="chart-total">Latest 7 dates</span>
+          </div>
+          {% if report.date_rows %}
+            <div class="chart-rows" role="list" aria-label="Event counts by capture date">
+              {% for row in report.date_rows %}
+                <div class="chart-row" role="listitem">
+                  <div class="chart-label"><span>{{ row.label }}</span><strong>{{ row.count }}</strong></div>
+                  <div class="bar-track" aria-hidden="true"><span class="bar-date" style="width: {{ row.width }}%"></span></div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="chart-empty">No valid capture dates recorded.</p>
+          {% endif %}
+        </article>
+      </section>
+      <p class="report-note">Analysis is based on the latest 50 events returned by the API.</p>
+    {% endif %}
+
+    <footer>INIDMS <span>·</span> Data is served by the Spring Boot API.</footer>
+  </main>
+</body>
+</html>

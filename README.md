@@ -2,8 +2,9 @@
 
 INIDMS is a portfolio project for monitoring an authorized local network and
 recording potentially suspicious traffic. It includes a Java Spring Boot API,
-MySQL storage, and a Python Flask dashboard. This milestone stores and displays
-events submitted to the API; it does not capture packets or determine whether
+MySQL storage, a Python Flask dashboard, and an opt-in Python packet metadata
+agent. The agent records IP addresses, protocol, ports, packet size, and
+timestamp; it does not store or send packet payloads or determine whether
 traffic is malicious.
 
 ## Requirements
@@ -95,6 +96,31 @@ outside local development.
 Both services bind to loopback by default. Add authentication and authorization
 before exposing the application to a LAN.
 
+## Run the Python monitoring agent
+
+Install the agent dependency in the project virtual environment:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r monitoring/requirements.txt
+```
+
+On Windows, install Npcap and run the terminal with Administrator privileges
+for packet capture. List interfaces, then explicitly select the LAN interface
+you are authorized to monitor:
+
+```powershell
+.\.venv\Scripts\python.exe -m monitoring.agent --list-interfaces
+.\.venv\Scripts\python.exe -m monitoring.agent --interface "Wi-Fi"
+```
+
+Replace `Wi-Fi` with an exact name from the list. The agent captures only on
+that interface, does not enable promiscuous mode, and sends supported TCP, UDP,
+and ICMP metadata to `http://127.0.0.1:8080/api/events`. Set `INIDMS_API_URL` or
+pass `--api-url` to use another backend address. Capture and delivery errors are
+logged while the monitoring loop continues; when the API is unavailable or the
+bounded delivery queue fills, affected events are dropped rather than saved
+locally. Press Ctrl+C to stop the agent.
+
 ## Tests
 
 Run the backend tests from the repository root:
@@ -108,4 +134,10 @@ Run the frontend tests with the virtual environment activated:
 
 ```sh
 python -m unittest frontend.test_app -v
+```
+
+Run the monitoring-agent tests with Scapy installed:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest monitoring.test_agent -v
 ```

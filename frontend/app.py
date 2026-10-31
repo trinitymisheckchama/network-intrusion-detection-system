@@ -3,6 +3,8 @@ import json
 import os
 import re
 import secrets
+from collections import Counter
+from datetime import datetime
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -142,6 +144,57 @@ def _validate_event(form):
     }, []
 
 
+def _chart_rows(counts):
+    maximum = max(counts.values(), default=0)
+    return [
+        {
+            "label": label,
+            "count": count,
+            "width": round(count / maximum * 100) if maximum else 0,
+        }
+        for label, count in counts.items()
+    ]
+
+
+def _build_report_data(events):
+    protocols = Counter(event.get("protocol") or "UNKNOWN" for event in events)
+    for protocol in PROTOCOLS:
+        protocols.setdefault(protocol, 0)
+
+    event_types = Counter(event.get("eventType") or "UNKNOWN" for event in events)
+    sources = Counter(event.get("sourceIp") or "UNKNOWN" for event in events)
+    capture_dates = Counter()
+    packet_sizes = []
+
+    for event in events:
+        captured_at = event.get("capturedAt")
+        if isinstance(captured_at, str):
+            try:
+                capture_date = datetime.fromisoformat(
+                    captured_at.replace("Z", "+00:00")
+                ).date().isoformat()
+                capture_dates[capture_date] += 1
+            except ValueError:
+                pass
+
+        packet_size = event.get("packetSize")
+        if isinstance(packet_size, (int, float)) and not isinstance(packet_size, bool):
+            packet_sizes.append(packet_size)
+
+    return {
+        "event_count": len(events),
+        "source_count": len(sources) if events else 0,
+        "average_packet_size": (
+            f"{sum(packet_sizes) / len(packet_sizes):,.1f}" if packet_sizes else "0"
+        ),
+        "date_count": len(capture_dates),
+        "protocol_rows": _chart_rows(dict(sorted(protocols.items()))),
+        "event_type_rows": _chart_rows(dict(event_types.most_common(6))),
+        "source_rows": _chart_rows(dict(sources.most_common(6))),
+        "date_rows": _chart_rows(dict(sorted(capture_dates.items())[-7:])),
+    }
+
+
 def create_app(api_base_url=None):
     app = Flask(__name__)
     app.secret_key = os.environ.get("FLASK_SECRET_KEY") or secrets.token_hex(32)
@@ -194,6 +247,22 @@ def create_app(api_base_url=None):
     @app.get("/")
     def index():
         return render_dashboard()
+
+    @app.get("/reports")
+    def reports():
+        try:
+            events = get_events()
+            report = _build_report_data(events)
+            load_error = None
+        except BackendError as error:
+            report = None
+            load_error = str(error)
+
+        return render_template(
+            "reports.html",
+            report=report,
+            load_error=load_error,
+        )
 
     @app.post("/events")
     def create_event():

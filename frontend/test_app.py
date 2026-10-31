@@ -38,6 +38,57 @@ class FlaskFrontendTest(unittest.TestCase):
         self.assertEqual(api_request.call_args.args[1], "GET")
 
     @patch("frontend.app.api_request")
+    def test_reports_show_aggregated_metrics_and_graphs(self, api_request):
+        api_request.return_value = [
+            {
+                "id": 1,
+                "sourceIp": "192.168.1.5",
+                "protocol": "TCP",
+                "packetSize": 100,
+                "eventType": "CONNECTION",
+                "capturedAt": "2026-10-31T12:00:00Z",
+            },
+            {
+                "id": 2,
+                "sourceIp": "192.168.1.5",
+                "protocol": "UDP",
+                "packetSize": 28,
+                "eventType": "CONNECTION",
+                "capturedAt": "2026-10-31T13:00:00Z",
+            },
+            {
+                "id": 3,
+                "sourceIp": "192.168.1.8",
+                "protocol": "ICMP",
+                "packetSize": 64,
+                "eventType": "SCAN",
+                "capturedAt": "2026-10-30T12:00:00Z",
+            },
+        ]
+
+        response = self.client.get("/reports")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Reports &amp; graphs", response.data)
+        self.assertIn(b"Events by protocol", response.data)
+        self.assertIn(b"Frequent event types", response.data)
+        self.assertIn(b"Most active sources", response.data)
+        self.assertIn(b"Events by date", response.data)
+        self.assertIn(b"64.0", response.data)
+        self.assertIn(b"2026-10-31", response.data)
+        self.assertEqual(api_request.call_args.args[1], "GET")
+
+    @patch("frontend.app.api_request")
+    def test_reports_show_backend_error(self, api_request):
+        api_request.side_effect = BackendError("Java API is unavailable.")
+
+        response = self.client.get("/reports")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Report data unavailable", response.data)
+        self.assertIn(b"Java API is unavailable", response.data)
+
+    @patch("frontend.app.api_request")
     def test_valid_form_posts_event_then_refreshes_list(self, api_request):
         token = self.csrf_token()
         api_request.reset_mock()

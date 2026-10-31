@@ -39,6 +39,7 @@ body {
   align-items: center;
   border-bottom: 1px solid var(--border);
   display: flex;
+  gap: 18px;
   height: 76px;
   justify-content: space-between;
 }
@@ -75,6 +76,64 @@ body {
   letter-spacing: 0.12em;
   margin-top: 3px;
 }
+
+.topbar-tools,
+.primary-nav {
+  align-items: center;
+  display: flex;
+}
+
+.topbar-tools {
+  gap: 22px;
+}
+
+.primary-nav {
+  gap: 7px;
+}
+
+.nav-link {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 12px;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 10px;
+  text-decoration: none;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background: #19232f;
+  border-color: #2a3949;
+  color: var(--text);
+}
+
+.nav-link.active {
+  color: var(--accent);
+}
+
+.chart-glyph {
+  align-items: end;
+  display: inline-flex;
+  gap: 2px;
+  height: 13px;
+  width: 14px;
+}
+
+.chart-glyph i {
+  background: currentColor;
+  border-radius: 1px 1px 0 0;
+  display: block;
+  height: 55%;
+  width: 3px;
+}
+
+.chart-glyph i:nth-child(2) { height: 100%; }
+.chart-glyph i:nth-child(3) { height: 75%; }
 
 .connection {
   align-items: center;
@@ -136,6 +195,145 @@ h1 {
   gap: 20px;
   grid-template-columns: minmax(320px, 0.8fr) minmax(0, 1.5fr);
   padding-bottom: 60px;
+}
+
+.report-metrics {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 16px;
+}
+
+.metric {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 17px 19px;
+}
+
+.metric-label,
+.metric-note {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.metric strong {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 25px;
+  font-weight: 500;
+  margin: 11px 0 6px;
+}
+
+.metric strong small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.metric-note {
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.report-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-bottom: 14px;
+}
+
+.chart-panel {
+  min-height: 240px;
+}
+
+.chart-panel .panel-heading {
+  margin-bottom: 20px;
+}
+
+.chart-total {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.chart-rows {
+  display: grid;
+  gap: 14px;
+}
+
+.chart-row {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.chart-label {
+  align-items: center;
+  color: #b7c3ce;
+  display: flex;
+  font-size: 11px;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.chart-label > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-label strong {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.chart-mono {
+  font-family: var(--mono);
+}
+
+.bar-track {
+  background: #202b37;
+  border-radius: 2px;
+  height: 5px;
+  overflow: hidden;
+}
+
+.bar-track span {
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  min-width: 0;
+}
+
+.bar-protocol { background: #61dfbd; }
+.bar-type { background: #f0bf68; }
+.bar-source { background: #77b9e8; }
+.bar-date { background: #e58b78; }
+
+.chart-empty {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0;
+  padding: 28px 0;
+  text-align: center;
+}
+
+.report-note {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  margin: 0 0 42px;
+}
+
+.report-error {
+  margin-bottom: 60px;
 }
 
 .panel {
@@ -464,6 +662,10 @@ footer span {
   .dashboard {
     grid-template-columns: 1fr;
   }
+
+  .report-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
@@ -489,5 +691,38 @@ footer span {
 
   .connection {
     font-size: 10px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    height: auto;
+    padding: 15px 0;
+  }
+
+  .topbar-tools {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .primary-nav {
+    gap: 2px;
+  }
+
+  .nav-link {
+    font-size: 11px;
+    padding: 0 7px;
+  }
+
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric {
+    padding: 14px;
+  }
+
+  .metric strong {
+    font-size: 21px;
   }
 }

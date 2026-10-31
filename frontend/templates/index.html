@@ -13,10 +13,18 @@
         <span class="brand-mark" aria-hidden="true">I</span>
         <span>INIDMS<span class="brand-caption">NETWORK MONITOR</span></span>
       </a>
-      <span class="connection">
-        <span class="status-dot{% if load_error %} offline{% endif %}"></span>
-        {% if load_error %}API unavailable{% else %}Java API{% endif %}
-      </span>
+      <div class="topbar-tools">
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <a class="nav-link" href="{{ url_for('reports') }}">
+            <span class="chart-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+            Reports &amp; graphs
+          </a>
+        </nav>
+        <span class="connection">
+          <span class="status-dot{% if load_error %} offline{% endif %}"></span>
+          {% if load_error %}API unavailable{% else %}Java API{% endif %}
+        </span>
+      </div>
     </header>
 
     <section class="intro">
